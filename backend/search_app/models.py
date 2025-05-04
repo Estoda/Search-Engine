@@ -9,8 +9,6 @@ class Page(models.Model):
 
     def __str__(self):
         return self.title or self.url
-
-
 class Index(models.Model):
     page = models.ForeignKey(Page, related_name='indexes', on_delete=models.CASCADE)
     keyword = models.CharField(max_length=200)
@@ -19,3 +17,9 @@ class Index(models.Model):
     def __str__(self):
         return f"{self.keyword} - {self.page.title}"
     
+class PageLink(models.Model):
+    from_page = models.ForeignKey(Page, related_name='outgoing_links', on_delete=models.CASCADE)
+    to_page = models.ForeignKey(Page, related_name='incoming_links', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('from_page', 'to_page')

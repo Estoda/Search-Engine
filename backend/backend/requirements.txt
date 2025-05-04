@@ -9,3 +9,4 @@ mysqlclient
 aiohttp
 beautifulsoup4
 tqdm
+numpy

@@ -17,7 +17,7 @@ sys.path.append(BASE_DIR)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 django.setup()
 
-from search_app.models import Page, Index
+from search_app.models import Page, Index, PageLink
 import re
 from django.db import transaction
 
@@ -141,8 +141,32 @@ class WebCrawler:
                 "crawled_at": timezone.now(),
             },
         )
-        self.index_page(page, content)
 
+        # Extract links from the content    
+        soup = BeautifulSoup(content, "html.parser")
+        links = set(a.get("href") for a in soup.find_all("a", href=True))
+        links = [self.normalize_url(url, link) for link in links if self.is_valid_url(link)]
+
+        # Index the page content
+        self.index_page(page, content)
+        self.save_links(page, links)
+    
+    def save_links(self, from_page, outgoing_links):
+        # Save the links to the database
+        for url in outgoing_links:
+            try:
+                to_page, _= Page.objects.get_or_create(url=url)
+                PageLink.objects.get_or_create(from_page=from_page, to_page=to_page)
+            except Page.DoesNotExist:
+                continue # Don't save links to pages that are not in the database
+
+    def is_valid_url(self, url):
+        return url.startswith("http") and not self.should_ignore(url)
+    
+    def normalize_url(self, base_url, link):
+        # Normalize the URL to ensure it is absolute
+        return urljoin(base_url, link)
+    
     def save_state(self):
         # Save the state of the crawler
         with open("visited_urls.pkl", "wb") as f:
