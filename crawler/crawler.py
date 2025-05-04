@@ -10,10 +10,11 @@ import pickle
 from tqdm import tqdm
 from django.utils import timezone
 from asgiref.sync import sync_to_async
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 django.setup()
 
 from search_app.models import Page, Index
@@ -21,28 +22,40 @@ import re
 from django.db import transaction
 
 start_urls = [
-    'https://gate.ahram.org.eg/',
-    'https://english.ahram.org.eg/',
-    'https://www.bbc.com/',
-    'https://www.cnn.com/',
-    'https://en.wikipedia.org/wiki/Main_Page',
-    'https://www.imdb.com/',
-    'https://www.britannica.com/',
-    'https://edition.cnn.com/',
-    'https://www.theguardian.com/international',
-    'https://www.nytimes.com/',
-    'https://www.aljazeera.com/',
-    'https://www.nationalgeographic.com/',
-    'https://www.techcrunch.com/'
+    "https://gate.ahram.org.eg/",
+    "https://english.ahram.org.eg/",
+    "https://www.bbc.com/",
+    "https://www.cnn.com/",
+    "https://en.wikipedia.org/wiki/Main_Page",
+    "https://www.imdb.com/",
+    "https://www.britannica.com/",
+    "https://edition.cnn.com/",
+    "https://www.theguardian.com/international",
+    "https://www.nytimes.com/",
+    "https://www.aljazeera.com/",
+    "https://www.nationalgeographic.com/",
+    "https://www.techcrunch.com/",
 ]
 
-max_urls = 100
+max_urls = 200
 max_depth = 4
-output_folder = 'scraped_pages'
+output_folder = "scraped_pages"
 
-ignored_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.pdf', '.zip', '.rar']
+ignored_extensions = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".bmp",
+    ".svg",
+    ".webp",
+    ".pdf",
+    ".zip",
+    ".rar",
+]
 
 os.makedirs(output_folder, exist_ok=True)
+
 
 class WebCrawler:
     def __init__(self, start_urls, max_urls, max_depth, output_folder):
@@ -60,21 +73,25 @@ class WebCrawler:
         # Fetch HTML content of a page safely
         try:
             # Skip unwanted URLs
-            if any(substr in url for substr in ["Special:", "action=", "login", "createaccount"]):
+            if any(
+                substr in url
+                for substr in ["Special:", "action=", "login", "createaccount"]
+            ):
                 return None
-            
+
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
             }
             async with self.semaphore:
-                async with session.get(url, headers=headers, timeout=20) as response:
+                async with session.get(url, headers=headers, timeout=30) as response:
                     if response.status == 200:
-                        content_type = response.headers.get('Content-Type', '')
-                        if 'text/html' in content_type:
+                        content_type = response.headers.get("Content-Type", "")
+                        if "text/html" in content_type:
                             return await response.text()
-        
+                    else:
+                        print(f"Non_200 response for {url}: {response.status}")
         except Exception as e:
-            print(f"Error fetching {url} : {e}")
+            print(f"Error fetching {url}: {e}")
         return None
 
     def should_ignore(self, url):
@@ -84,29 +101,28 @@ class WebCrawler:
             if parsed_url.path.lower().endswith(ext):
                 return True
         return False
-    
+
     def extract_links(self, url, html):
         # Extract links from the HTML content
         links = set()
         if not html:
             return links
-        
-        soup = BeautifulSoup(html, 'html.parser')
+
+        soup = BeautifulSoup(html, "html.parser")
         base_domain = urlparse(url).netloc
 
-        for a_tag in soup.find_all('a', href=True):
-            href = a_tag['href']
-            if href.startswith('http'):
+        for a_tag in soup.find_all("a", href=True):
+            href = a_tag["href"]
+            if href.startswith("http"):
                 link_domain = urlparse(href).netloc
                 if not self.should_ignore(href):
                     links.add(href)
-            elif href.startswith('/'):
+            elif href.startswith("/"):
                 full_url = urljoin(url, href)
                 if not self.should_ignore(full_url):
                     links.add(full_url)
 
         return links
-    
 
     async def save_content(self, url, content, file_number):
         try:
@@ -116,37 +132,41 @@ class WebCrawler:
 
     def _sync_save_content(self, url, content):
         # Save the content to DB
-            title = content[:300].split('\n')[0] if content else ''
-            Page.objects.update_or_create(
-                url=url,
-                defaults={
-                    'title': title,
-                    'content': content,
-                    'crawled_at': timezone.now(),
-                }
-            )
+        title = content[:300].split("\n")[0] if content else ""
+        page, _ = Page.objects.update_or_create(
+            url=url,
+            defaults={
+                "title": title,
+                "content": content,
+                "crawled_at": timezone.now(),
+            },
+        )
+        self.index_page(page, content)
 
-    
     def save_state(self):
         # Save the state of the crawler
-        with open('visited_urls.pkl', 'wb') as f:
+        with open("visited_urls.pkl", "wb") as f:
             pickle.dump(self.visited_urls, f)
-        with open('urls_to_visit.pkl', 'wb') as f:
+        with open("urls_to_visit.pkl", "wb") as f:
             pickle.dump(self.urls_to_visit, f)
-        with open('collected_urls.pkl', 'wb') as f:
+        with open("collected_urls.pkl", "wb") as f:
             pickle.dump(self.collected_urls, f)
         print("State saved.")
-    
+
     def load_state(self):
         # Load the state of the crawler
-        if os.path.exists('visited_urls.pkl') and os.path.exists('urls_to_visit.pkl') and os.path.exists('collected_urls.pkl'):
-            with open('visited_urls.pkl', 'rb') as f:
+        if (
+            os.path.exists("visited_urls.pkl")
+            and os.path.exists("urls_to_visit.pkl")
+            and os.path.exists("collected_urls.pkl")
+        ):
+            with open("visited_urls.pkl", "rb") as f:
                 self.visited_urls = pickle.load(f)
-            with open('urls_to_visit.pkl', 'rb') as f:
+            with open("urls_to_visit.pkl", "rb") as f:
                 self.urls_to_visit = pickle.load(f)
-            with open('collected_urls.pkl', 'rb') as f:
+            with open("collected_urls.pkl", "rb") as f:
                 self.collected_urls = pickle.load(f)
-            print('State loaded.')
+            print("State loaded.")
 
             current_urls = {url for url, depth in self.urls_to_visit}
             for url in self.start_urls:
@@ -155,51 +175,106 @@ class WebCrawler:
                     print(f"Added {url} to urls_to_visit.")
         else:
             print("State not found. Starting from scratch.")
-    
+
     async def crawl(self):
         # Load the state of the crawler
         self.load_state()
         start_time = time.time()
         async with aiohttp.ClientSession() as session:
-            with tqdm(total=self.max_urls, initial=len(self.collected_urls), desc='Crawling') as pbar:
+            with tqdm(
+                total=self.max_urls, initial=len(self.collected_urls), desc="Crawling"
+            ) as pbar:
                 while self.urls_to_visit and len(self.collected_urls) < self.max_urls:
                     current_batch = self.urls_to_visit[:50]
                     self.urls_to_visit = self.urls_to_visit[50:]
 
-                    tasks = [self.process_url(session, url, depth, pbar) for url, depth in current_batch]
+                    tasks = [
+                        self.process_url(session, url, depth, pbar)
+                        for url, depth in current_batch
+                    ]
                     await asyncio.gather(*tasks)
 
-                    self.save_state() # Save the state of the crawler after each batch
-        print(f"{len(self.collected_urls)} URLs collected in {time.time() - start_time:.2f} seconds.")
-    
+                    self.save_state()  # Save the state of the crawler after each batch
+        print(
+            f"{len(self.collected_urls)} URLs collected in {time.time() - start_time:.2f} seconds."
+        )
+
     async def process_url(self, session, url, depth, pbar):
         # Processing the URL, Extracting the content and saving it, Bringing the content.
         if url in self.visited_urls or len(self.collected_urls) >= self.max_urls:
             return
-        
+
+        retries = 3
+        html = None
+
+        for attempt in range(retries):
+            html = await self.fetch(session, url)
+            if html:
+                break
+            else:
+                print(f"Retrying {url}... attempt {attempt + 1}")
+                await asyncio.sleep(1)  # Wait before retrying
+
+        if not html:
+            print(f"Faild to fetch {url} after {retries} attempts.")
+            return
+
         self.visited_urls.add(url)
-        html = await self.fetch(session, url)
+        self.collected_urls.append(url)
+        await self.save_content(
+            url,
+            BeautifulSoup(html, "html.parser").get_text(separator=" ", strip=True),
+            len(self.collected_urls),
+        )
+        pbar.update(1)
 
-        if html:
-            self.collected_urls.append(url)
-            await self.save_content(url, BeautifulSoup(html, 'html.parser').get_text(separator=' ', strip=True),len(self.collected_urls))
-            pbar.update(1)
+        if depth < self.max_depth:
+            new_links = self.extract_links(url, html)
+            for link in new_links:
+                if (
+                    link not in self.visited_urls
+                    and len(self.collected_urls) + len(self.urls_to_visit)
+                    < self.max_urls
+                ):
+                    self.urls_to_visit.append((link, depth + 1))
 
-            if depth < self.max_depth:
-                new_links = self.extract_links(url, html)
-                for link in new_links:
-                    if link not in self.visited_urls and len(self.collected_urls) + len(self.urls_to_visit) < self.max_urls:
-                        self.urls_to_visit.append((link, depth + 1))
+    def index_page(self, page: Page, content: str):
+        # Indexing the page
+        words = re.findall(r"\w+", content.lower())
+        index_objects = []
+
+        # Adding words to Index
+        with transaction.atomic():  # Ensure concurrency
+            for position, word in enumerate(words):
+                # Check if the word already exists in the Index
+                index_objects.append(Index(page=page, keyword=word, position=position))
+            Index.objects.bulk_create(index_objects)
+
+        # Calculate the rank of the page
+        self.update_page_rank(page)
+
+    def update_page_rank(self, page: Page):
+        # Calculating the page rank based on incoming links
+        inbound_links = Page.objects.filter(
+            url__in=Index.objects.filter(page_id=page.id).values("keyword")
+        ).count()
+        page.rank = inbound_links
+        page.save()
 
 
 async def main():
-    crawler = WebCrawler(start_urls=start_urls, max_urls=max_urls, max_depth=max_depth, output_folder=output_folder)
+    crawler = WebCrawler(
+        start_urls=start_urls,
+        max_urls=max_urls,
+        max_depth=max_depth,
+        output_folder=output_folder,
+    )
     await crawler.crawl()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import sys
+
     if sys.platform.startswith("win"):
         asyncio.set_event_loop_ploicy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())
-        
-

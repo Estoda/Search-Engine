@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Search Engine</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 2rem;
+      }
+      input[type="text"] {
+        width: 300px;
+        padding: 0.5rem;
+      }
+      .result {
+        margin-top: 1rem;
+      }
+      .highlight {
+        background-color: yellow;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Search Engine</h1>
+    <form id="search-form">
+      <input type="text" id="query" placeholder="Enter a search term..." />
+      <button type="submit">Search</button>
+    </form>
+
+    <div id="results"></div>
+
+    <script>
+      const form = document.getElementById("search-form");
+      const resultsDiv = document.getElementById("results");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const query = document.getElementById("query").value;
+
+        const response = await fetch(
+          `/api/search/?q=${encodeURIComponent(query)}`
+        );
+        const data = await response.json();
+
+        resultsDiv.innerHTML = "";
+        if (data.length === 0) {
+          resultsDiv.innerHTML = "<p>No results found.</p>";
+          return;
+        }
+
+        data.forEach((page) => {
+          const highlightedTitle = page.title.replace(
+            new RegExp(`(${query})`, "gi"),
+            "<mark>$1</mark>"
+          );
+
+          const snippet = getSnippet(page.content, query);
+          const highlightedSnippet = snippet.replace(
+            new RegExp(`(${query})`, "gi"),
+            "<mark>$1</mark>"
+          );
+
+          resultsDiv.innerHTML += `
+        <div class="result">
+          <a href="${page.url}" target="_blank">${highlightedTitle}</a>
+          <p>Rank: ${page.rank.toFixed(2)}</p>
+          <p>${highlightedSnippet}</p>
+        </div>
+      `;
+        });
+      });
+
+      function getSnippet(text, query) {
+        const lowerText = text.toLowerCase();
+        const lowerQuery = query.toLowerCase();
+        const index = lowerText.indexOf(lowerQuery);
+
+        if (index === -1) return text.slice(0, 200) + "...";
+
+        const start = Math.max(0, index - 50);
+        const end = Math.min(text.length, index + query.length + 50);
+        return (
+          (start > 0 ? "..." : "") +
+          text.slice(start, end) +
+          (end < text.length ? "..." : "")
+        );
+      }
+    </script>
+  </body>
+</html>
