@@ -1,61 +1,63 @@
-import django
 import os
+import django
 import sys
-import numpy as np
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 django.setup()
 
-from search_app.models import Page, PageLink
+from search_app.models import Page, Index, PageLink
+from collections import defaultdict
 
-def compute_pagerank(damping=0.85, max_iter=100, tol=1e-6):
-    pages = list(Page.objects.all())
+DAMPING_FACTOR = 0.8
+ITERATIONS = 500
+
+def compute_pagerank():
+    pages = Page.objects.all()
+    page_ids = [page.id for page in pages]
     page_index = {page.id: i for i, page in enumerate(pages)}
-    n = len(pages)
+    N = len(page_ids)
 
-    if n == 0:
-        print("No pages found.")
-        return 
-    
-    # transition matrix
-    M = np.zeros((n, n))
+    # Initialize rank for each page
+    ranks = [1.0 / N] * N
+
+    # Build graph: page_id -> list of to_page_id
+    outgoing_links = defaultdict(list)
+    incoming_links = defaultdict(list)
 
     for link in PageLink.objects.all():
-        i = page_index(link.from_page.id)
-        j = page_index(link.to_page.id)
-        if i is not None and j is not None:
-            M[j][i] +=1 # link from j to i
+        if link.from_page_id != link.to_page_id:  # Avoid self-loops
+            outgoing_links[link.from_page_id].append(link.to_page_id)
+            incoming_links[link.to_page_id].append(link.from_page_id)
 
-    # convert every column to a probability distribution
-    for i in range(n):
-        col_sum = np.sum(M[:, i])
-        if col_sum != 0:
-            M[:, i] /= col_sum
-        else:
-            # if the column is all zeros, set it to uniform distribution
-            M[:, i] = 1.0 / n
+    for _ in range(ITERATIONS):
+        new_ranks = [0.0] * N
+        for page in pages:
+            i = page_index[page.id]
+            rank_sum = 0.0
+            for in_id in incoming_links[page.id]:
+                j = page_index[in_id]
+                out_degree = len(outgoing_links[in_id])
+                if out_degree > 0:
+                    rank_sum += ranks[j] / out_degree
 
-    # PageRank vector initialization
-    rank = np.ones(n) / n
+            new_ranks[i] = (1 - DAMPING_FACTOR) / N + DAMPING_FACTOR * rank_sum
 
-    for iteration in range(max_iter):
-        new_rank = damping * M @ rank + (1 - damping) / n
-        if np.linalg.norm(new_rank - rank, ord=1) < tol:
-            print(f"Converged after {iteration} iterations.")
-            break
-        rank = new_rank
+        ranks = new_ranks
 
+    # Normalize the ranks to be between 0.01 and 1
+    min_rank = min(ranks)
+    max_rank = max(ranks)
     
-    # Save ranks back to DB
+    # Map the ranks to the desired range [0.01, 1]
     for i, page in enumerate(pages):
-        page.rank = rank[i]
+        normalized_rank = (ranks[i] - min_rank) / (max_rank - min_rank)  # Normalize to [0, 1]
+        normalized_rank = 0.01 + (normalized_rank * (1 - 0.01))  # Scale to [0.01, 1]
+        page.rank = normalized_rank
         page.save()
 
-    print("PageRank updated for all pages.")
+    print("PageRank computation completed.")
 
 if __name__ == "__main__":
     compute_pagerank()
-

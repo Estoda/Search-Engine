@@ -5,20 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Search Engine</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 2rem;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
+
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f4f7fa;
+        padding: 2rem;
+        color: #333;
+      }
+
+      h1 {
+        text-align: center;
+        color: #4a90e2;
+        margin-bottom: 1.5rem;
+      }
+
+      #search-form {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+      }
+
       input[type="text"] {
         width: 300px;
-        padding: 0.5rem;
+        padding: 0.8rem;
+        margin-right: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
       }
-      .result {
+
+      button {
+        padding: 0.8rem 1.5rem;
+        border: 1px solid #4a90e2;
+        border-radius: 4px;
+        background-color: #4a90e2;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #357ab7;
+      }
+
+      .button-group {
+        display: flex;
+        justify-content: center;
         margin-top: 1rem;
       }
+
+      .button-group button {
+        margin: 0 10px;
+        padding: 0.8rem 1.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #fff;
+        color: #333;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .button-group button:hover {
+        background-color: #f0f0f0;
+      }
+
+      #results {
+        margin-top: 2rem;
+      }
+
+      .result {
+        background-color: #fff;
+        padding: 1rem;
+        margin-bottom: 1.2rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .result a {
+        font-size: 1.2rem;
+        color: #4a90e2;
+        text-decoration: none;
+        font-weight: bold;
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+
+      .result a:hover {
+        text-decoration: underline;
+      }
+
+      .result p {
+        margin: 0.5rem 0;
+        font-size: 0.95rem;
+      }
+
       .highlight {
         background-color: yellow;
         font-weight: bold;
+      }
+
+      .no-results {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #888;
       }
     </style>
   </head>
@@ -29,24 +125,35 @@
       <button type="submit">Search</button>
     </form>
 
+    <div class="button-group">
+      <button id="sort-asc">Sort by Rank Ascending</button>
+      <button id="sort-desc">Sort by Rank Descending</button>
+      <button id="no-sort">No Sort (Random)</button>
+    </div>
+
     <div id="results"></div>
 
     <script>
       const form = document.getElementById("search-form");
       const resultsDiv = document.getElementById("results");
+      const sortAscButton = document.getElementById("sort-asc");
+      const sortDescButton = document.getElementById("sort-desc");
+      const noSortButton = document.getElementById("no-sort");
+
+      let sortOption = "rank_desc"; // Default sorting option
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const query = document.getElementById("query").value;
 
         const response = await fetch(
-          `/api/search/?q=${encodeURIComponent(query)}`
+          `/api/search/?q=${encodeURIComponent(query)}&sort=${sortOption}`
         );
         const data = await response.json();
 
         resultsDiv.innerHTML = "";
         if (data.length === 0) {
-          resultsDiv.innerHTML = "<p>No results found.</p>";
+          resultsDiv.innerHTML = "<p class='no-results'>No results found.</p>";
           return;
         }
 
@@ -63,13 +170,28 @@
           );
 
           resultsDiv.innerHTML += `
-        <div class="result">
-          <a href="${page.url}" target="_blank">${highlightedTitle}</a>
-          <p>Rank: ${page.rank.toFixed(2)}</p>
-          <p>${highlightedSnippet}</p>
-        </div>
-      `;
+            <div class="result">
+              <a href="${page.url}" target="_blank">${highlightedTitle}</a>
+              <p>Rank: ${page.rank.toFixed(2)}</p>
+              <p>${highlightedSnippet}</p>
+            </div>
+          `;
         });
+      });
+
+      sortAscButton.addEventListener("click", () => {
+        sortOption = "rank_asc";
+        form.dispatchEvent(new Event("submit"));
+      });
+
+      sortDescButton.addEventListener("click", () => {
+        sortOption = "rank_desc";
+        form.dispatchEvent(new Event("submit"));
+      });
+
+      noSortButton.addEventListener("click", () => {
+        sortOption = "no_sort";
+        form.dispatchEvent(new Event("submit"));
       });
 
       function getSnippet(text, query) {

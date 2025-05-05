@@ -37,7 +37,7 @@ start_urls = [
     "https://www.techcrunch.com/",
 ]
 
-max_urls = 200
+max_urls = 100
 max_depth = 4
 output_folder = "scraped_pages"
 
@@ -113,15 +113,14 @@ class WebCrawler:
 
         for a_tag in soup.find_all("a", href=True):
             href = a_tag["href"]
+            if href.startswith("#") or href.startswith("javascript:"):
+                continue
+            if href.startswith("/"):
+                href = urljoin(url, href)
             if href.startswith("http"):
-                link_domain = urlparse(href).netloc
-                if not self.should_ignore(href):
-                    links.add(href)
-            elif href.startswith("/"):
-                full_url = urljoin(url, href)
-                if not self.should_ignore(full_url):
-                    links.add(full_url)
+                links.add(href)
 
+        print(f"[DEBUG] Extracted {len(links)} links from {url}")
         return links
 
     async def save_content(self, url, content, file_number):
@@ -131,8 +130,11 @@ class WebCrawler:
             print(f"Error saving {url} : {e}")
 
     def _sync_save_content(self, url, content):
+        print(f"[DEBUG] Saving content form {url}")
         # Save the content to DB
-        title = content[:300].split("\n")[0] if content else ""
+        soup = BeautifulSoup(content, "html.parser")
+        title = soup.title.string if soup.title else "No Title"
+        
         page, _ = Page.objects.update_or_create(
             url=url,
             defaults={
@@ -144,24 +146,48 @@ class WebCrawler:
 
         # Extract links from the content    
         soup = BeautifulSoup(content, "html.parser")
-        links = set(a.get("href") for a in soup.find_all("a", href=True))
-        links = [self.normalize_url(url, link) for link in links if self.is_valid_url(link)]
+        raw_links = set(a.get("href") for a in soup.find_all("a", href=True))
+        print(f"[DEBUG] Found {len(raw_links)} raw links in {url}")
+        links = [self.normalize_url(url, link) for link in raw_links if self.is_valid_url(link)]
+        print(f"[DEBUG] Normalized to {len(links)} valid links in {url}")
+
+        linked_pages = []
+        for link in links:
+            page_obj, _ = Page.objects.get_or_create(url=link)
+            linked_pages.append(page_obj)
 
         # Index the page content
-        self.index_page(page, content)
+        text_content = soup.get_text(separator=" ", strip=True)
+        self.index_page(page, text_content)
         self.save_links(page, links)
     
     def save_links(self, from_page, outgoing_links):
+        print(f"[DEBUG] Saving links from: {from_page.url} - Found {len(outgoing_links)} links")
+        if not outgoing_links:
+            print(f"[DEBUG] No outgoing links found for {from_page.url}")
+            return
         # Save the links to the database
         for url in outgoing_links:
+            if not url or not url.startswith("http"):
+                continue
             try:
-                to_page, _= Page.objects.get_or_create(url=url)
-                PageLink.objects.get_or_create(from_page=from_page, to_page=to_page)
-            except Page.DoesNotExist:
-                continue # Don't save links to pages that are not in the database
+                to_page, _ = Page.objects.get_or_create(url=url)
+                link_obj, created = PageLink.objects.get_or_create(from_page=from_page, to_page=to_page)
+                if created:
+                    print(f"[DEBUG] Created link from {from_page.url} to {to_page.url}")
+            except Exception as e:
+                print(f"[DEBUG] Error creating link from {from_page.url} to {url}: {e}")
+
+
 
     def is_valid_url(self, url):
-        return url.startswith("http") and not self.should_ignore(url)
+        return (
+            url.startswith("http")
+            and not self.should_ignore(url)
+            and not url.startswith("mailto:")
+            and not url.startswith("#")
+            and not url.startswith("javascript:")
+        )
     
     def normalize_url(self, base_url, link):
         # Normalize the URL to ensure it is absolute
@@ -227,6 +253,8 @@ class WebCrawler:
         # Processing the URL, Extracting the content and saving it, Bringing the content.
         if url in self.visited_urls or len(self.collected_urls) >= self.max_urls:
             return
+        
+        print(f"Processing {url} at depth {depth}")
 
         retries = 3
         html = None
@@ -240,27 +268,27 @@ class WebCrawler:
                 await asyncio.sleep(1)  # Wait before retrying
 
         if not html:
-            print(f"Faild to fetch {url} after {retries} attempts.")
+            print(f"Failed to fetch {url} after {retries} attempts.")
             return
 
         self.visited_urls.add(url)
         self.collected_urls.append(url)
         await self.save_content(
             url,
-            BeautifulSoup(html, "html.parser").get_text(separator=" ", strip=True),
+            html,
             len(self.collected_urls),
         )
         pbar.update(1)
 
         if depth < self.max_depth:
-            new_links = self.extract_links(url, html)
-            for link in new_links:
-                if (
-                    link not in self.visited_urls
-                    and len(self.collected_urls) + len(self.urls_to_visit)
-                    < self.max_urls
-                ):
-                    self.urls_to_visit.append((link, depth + 1))
+                new_links = self.extract_links(url, html)
+                for link in new_links:
+                    if (
+                        link not in self.visited_urls
+                        and len(self.collected_urls) + len(self.urls_to_visit)
+                        < self.max_urls
+                    ):
+                        self.urls_to_visit.append((link, depth + 1))
 
     def index_page(self, page: Page, content: str):
         # Indexing the page
@@ -270,20 +298,8 @@ class WebCrawler:
         # Adding words to Index
         with transaction.atomic():  # Ensure concurrency
             for position, word in enumerate(words):
-                # Check if the word already exists in the Index
                 index_objects.append(Index(page=page, keyword=word, position=position))
             Index.objects.bulk_create(index_objects)
-
-        # Calculate the rank of the page
-        self.update_page_rank(page)
-
-    def update_page_rank(self, page: Page):
-        # Calculating the page rank based on incoming links
-        inbound_links = Page.objects.filter(
-            url__in=Index.objects.filter(page_id=page.id).values("keyword")
-        ).count()
-        page.rank = inbound_links
-        page.save()
 
 
 async def main():

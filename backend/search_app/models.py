@@ -21,5 +21,3 @@ class PageLink(models.Model):
     from_page = models.ForeignKey(Page, related_name='outgoing_links', on_delete=models.CASCADE)
     to_page = models.ForeignKey(Page, related_name='incoming_links', on_delete=models.CASCADE)
 
-    class Meta:
-        unique_together = ('from_page', 'to_page')
