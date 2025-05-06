@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Search Engine</title>
+    <title>Estoda</title>
     <style>
       * {
         margin: 0;
@@ -12,16 +12,17 @@
       }
 
       body {
-        font-family: "Arial", sans-serif;
-        background-color: #f4f7fa;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #121212;
+        color: #e0e0e0;
         padding: 2rem;
-        color: #333;
       }
 
       h1 {
         text-align: center;
-        color: #4a90e2;
-        margin-bottom: 1.5rem;
+        color: #90caf9;
+        margin-bottom: 2rem;
+        font-size: 2.5rem;
       }
 
       #search-form {
@@ -31,27 +32,29 @@
       }
 
       input[type="text"] {
-        width: 300px;
+        width: 320px;
         padding: 0.8rem;
         margin-right: 1rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        border: 1px solid #333;
+        border-radius: 6px;
+        background-color: #1e1e1e;
+        color: #fff;
         font-size: 1rem;
       }
 
       button {
         padding: 0.8rem 1.5rem;
-        border: 1px solid #4a90e2;
-        border-radius: 4px;
-        background-color: #4a90e2;
+        border: none;
+        border-radius: 6px;
+        background-color: #2196f3;
         color: white;
         font-size: 1rem;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: background-color 0.3s ease;
       }
 
       button:hover {
-        background-color: #357ab7;
+        background-color: #1565c0;
       }
 
       .button-group {
@@ -62,17 +65,17 @@
 
       .button-group button {
         margin: 0 10px;
-        padding: 0.8rem 1.5rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background-color: #fff;
-        color: #333;
+        padding: 0.6rem 1.2rem;
+        border: 1px solid #444;
+        border-radius: 6px;
+        background-color: #1e1e1e;
+        color: #ccc;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: background-color 0.3s ease;
       }
 
       .button-group button:hover {
-        background-color: #f0f0f0;
+        background-color: #333;
       }
 
       #results {
@@ -80,17 +83,47 @@
       }
 
       .result {
-        background-color: #fff;
-        padding: 1rem;
+        background-color: #1e1e1e;
+        padding: 1.2rem;
         margin-bottom: 1.2rem;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 1px solid #333;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s ease forwards;
+      }
+
+      .result:hover {
+        background-color: #323232;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        margin-left: 20px;
+        transition: all 0.3s ease;
+      }
+
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      button,
+      input[type="text"] {
+        transition: all 0.3s ease-in-out;
+      }
+
+      button:active {
+        transform: scale(0.96);
+      }
+
+      .button-group button:active {
+        transform: scale(0.95);
       }
 
       .result a {
         font-size: 1.2rem;
-        color: #4a90e2;
+        color: #64b5f6;
         text-decoration: none;
         font-weight: bold;
         display: block;
@@ -104,11 +137,16 @@
       .result p {
         margin: 0.5rem 0;
         font-size: 0.95rem;
+        color: #ccc;
       }
 
-      .highlight {
-        background-color: yellow;
+      .highlight,
+      mark {
+        background-color: #ffee58;
+        color: #000;
         font-weight: bold;
+        padding: 0 3px;
+        border-radius: 2px;
       }
 
       .no-results {
@@ -116,10 +154,35 @@
         font-size: 1.2rem;
         color: #888;
       }
+
+      @media (max-width: 600px) {
+        body {
+          padding: 1rem;
+        }
+
+        input[type="text"] {
+          width: 100%;
+          margin-right: 0;
+        }
+
+        button {
+          width: 100%;
+        }
+
+        .button-group {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .button-group button {
+          width: 100%;
+          max-width: 300px;
+        }
+      }
     </style>
   </head>
   <body>
-    <h1>Search Engine</h1>
+    <h1>Estoda Search Engine</h1>
     <form id="search-form">
       <input type="text" id="query" placeholder="Enter a search term..." />
       <button type="submit">Search</button>
@@ -140,7 +203,7 @@
       const sortDescButton = document.getElementById("sort-desc");
       const noSortButton = document.getElementById("no-sort");
 
-      let sortOption = "rank_desc"; // Default sorting option
+      let sortOption = "rank_desc";
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();

@@ -67,7 +67,7 @@ class WebCrawler:
         self.urls_to_visit = [(url, 0) for url in start_urls]
         self.collected_urls = []
 
-        self.semaphore = asyncio.Semaphore(10)
+        self.semaphore = asyncio.Semaphore(20) # Limit concurrent requests
 
     async def fetch(self, session, url):
         # Fetch HTML content of a page safely
@@ -131,24 +131,30 @@ class WebCrawler:
 
     def _sync_save_content(self, url, content):
         print(f"[DEBUG] Saving content form {url}")
+        def get_visible_text(soup):
+            # Remove unwanted elements
+            for tag in soup(["script", "style", "meta", "noscript", "header", "footer", "nav"]):
+                tag.extract()
+            return soup.get_text(separator=" ", strip=True)
         # Save the content to DB
         soup = BeautifulSoup(content, "html.parser")
+        text_content = get_visible_text(soup)
         title = soup.title.string if soup.title else "No Title"
         
         page, _ = Page.objects.update_or_create(
             url=url,
             defaults={
                 "title": title,
-                "content": content,
+                "content": text_content,
                 "crawled_at": timezone.now(),
             },
         )
 
         # Extract links from the content    
-        soup = BeautifulSoup(content, "html.parser")
         raw_links = set(a.get("href") for a in soup.find_all("a", href=True))
         print(f"[DEBUG] Found {len(raw_links)} raw links in {url}")
-        links = [self.normalize_url(url, link) for link in raw_links if self.is_valid_url(link)]
+        normalized_links = [self.normalize_url(url, link) for link in raw_links]
+        links = [link for link in normalized_links if self.is_valid_url(link)]
         print(f"[DEBUG] Normalized to {len(links)} valid links in {url}")
 
         linked_pages = []
@@ -156,10 +162,11 @@ class WebCrawler:
             page_obj, _ = Page.objects.get_or_create(url=link)
             linked_pages.append(page_obj)
 
+    
         # Index the page content
-        text_content = soup.get_text(separator=" ", strip=True)
         self.index_page(page, text_content)
         self.save_links(page, links)
+
     
     def save_links(self, from_page, outgoing_links):
         print(f"[DEBUG] Saving links from: {from_page.url} - Found {len(outgoing_links)} links")

@@ -55,9 +55,9 @@ class SearchAPIView(APIView):
 
         # Apply sorting
         if sort_option == 'rank_asc':
-            pages = Page.objects.filter(id__in=page_ids).order_by('rank')[:20]
+            pages = Page.objects.filter(id__in=page_ids).order_by('rank')[:100]
         elif sort_option == 'rank_desc':
-            pages = Page.objects.filter(id__in=page_ids).order_by('-rank')[:20]
+            pages = Page.objects.filter(id__in=page_ids).order_by('-rank')[:100]
         else:
             # No sorting or random sorting
             pages = Page.objects.filter(id__in=page_ids)[:20]
