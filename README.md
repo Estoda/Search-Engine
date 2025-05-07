@@ -53,7 +53,7 @@ Search-Engine/
 
 ---
 
-## Installation and Running the Project:
+## Installing and Running the Project:
 
 ```bash
 git clone https://github.com/Estoda/Search-Engine
