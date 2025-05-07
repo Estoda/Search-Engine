@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    {% load static %}
+    <link
+      rel="shortcut icon"
+      href="{% static 'images/logo.png' %}"
+      type="image/x-icon"
+    />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Estoda</title>
@@ -19,9 +25,11 @@
       }
 
       h1 {
+        background: linear-gradient(45deg, #c9fb87, #2196f3);
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
         text-align: center;
         color: #90caf9;
-        margin-bottom: 2rem;
         font-size: 2.5rem;
       }
 
@@ -179,10 +187,45 @@
           max-width: 300px;
         }
       }
+      .header-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .header-logo img {
+        width: 100px;
+        height: 100px;
+        object-fit: contain;
+        transform: rotate(45deg);
+      }
+
+      @media (max-width: 600px) {
+        .header-logo {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .header-logo img {
+          width: 40px;
+          height: 40px;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+      }
     </style>
   </head>
   <body>
-    <h1>Estoda Search Engine</h1>
+    <div class="header-logo">
+      <img src="{% static 'images/logo.png' %}" alt="logo" />
+      <h1>Estoda Search Engine</h1>
+    </div>
+
     <form id="search-form">
       <input type="text" id="query" placeholder="Enter a search term..." />
       <button type="submit">Search</button>
@@ -193,6 +236,17 @@
       <button id="sort-desc">Sort by Rank Descending</button>
       <button id="no-sort">No Sort (Random)</button>
     </div>
+
+    <p
+      id="results-count"
+      style="
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 1.1rem;
+        color: #bbb;
+      "
+    ></p>
+    <div id="results"></div>
 
     <div id="results"></div>
 
@@ -272,6 +326,52 @@
           (end < text.length ? "..." : "")
         );
       }
+    </script>
+    <script>
+      const resultsCount = document.getElementById("results-count");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const query = document.getElementById("query").value;
+
+        const response = await fetch(
+          `/api/search/?q=${encodeURIComponent(query)}&sort=${sortOption}`
+        );
+        const data = await response.json();
+
+        resultsDiv.innerHTML = "";
+        resultsCount.textContent = "";
+
+        if (data.length === 0) {
+          resultsDiv.innerHTML = "<p class='no-results'>No results found.</p>";
+          return;
+        }
+
+        resultsCount.textContent = `${data.length} result${
+          data.length > 1 ? "s" : ""
+        } found`;
+
+        data.forEach((page, index) => {
+          const highlightedTitle = page.title.replace(
+            new RegExp(`(${query})`, "gi"),
+            "<mark>$1</mark>"
+          );
+
+          const snippet = getSnippet(page.content, query);
+          const highlightedSnippet = snippet.replace(
+            new RegExp(`(${query})`, "gi"),
+            "<mark>$1</mark>"
+          );
+
+          resultsDiv.innerHTML += `
+      <div class="result" style="animation-delay: ${index * 0.1}s">
+        <a href="${page.url}" target="_blank">${highlightedTitle}</a>
+        <p>Rank: ${page.rank.toFixed(2)}</p>
+        <p>${highlightedSnippet}</p>
+      </div>
+    `;
+        });
+      });
     </script>
   </body>
 </html>

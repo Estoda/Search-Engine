@@ -19,7 +19,7 @@ def compute_pagerank():
     start_time = time.time()
 
     print("[INFO] Fetching pages from database...")
-    pages = Page.objects.all()
+    pages= Page.objects.exclude(title__isnull=True).exclude(title__exact="").exclude(content__isnull=True).exclude(content__exact="") 
     page_ids = [page.id for page in pages]
     page_index = {page.id: i for i, page in enumerate(pages)}
     N = len(page_ids)

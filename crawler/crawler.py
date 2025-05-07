@@ -37,7 +37,7 @@ start_urls = [
     "https://www.techcrunch.com/",
 ]
 
-max_urls = 100
+max_urls = 400
 max_depth = 4
 output_folder = "scraped_pages"
 
