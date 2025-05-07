@@ -53,6 +53,13 @@ Search-Engine/
 
 ---
 
+## Database Schema (ERD)
+
+The following diagram shows the structure of the database and the relationship between entities:
+![ERD](docs/ERD.png)
+
+---
+
 ## Installing and Running the Project:
 
 ```bash
