@@ -11,3 +11,4 @@ beautifulsoup4
 tqdm
 numpy
 playwright
+drf-yasg

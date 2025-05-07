@@ -83,3 +83,13 @@ python manage.py collectstatic
 - Run `crawler/pagerank.py` after crawling to compute PageRank and update database
 
 ---
+
+
+## API Documentation:
+
+This project includes auto-generated API documentation using:
+
+- **Swagger UI**: [http://localhost:8000/swagger/](http://localhost:8000/swagger/)
+- **ReDoc** [http://localhost:8000/redoc/](http://localhost:8000/redoc/)
+
+The schema is generated using `drf-yasg`, and documents all available search endpoints and query parameters.

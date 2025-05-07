@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'search_app.apps.SearchAppConfig',
     'rest_framework',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
