@@ -2,6 +2,7 @@
 
 A web-based search engine built with Django, Docker, and MySQL, supporting crawling, indexing, ranking, and highlighting.
 
+```text
 Search-Engine/
 │
 ├── backend/ # Folder for the backend
@@ -28,7 +29,7 @@ Search-Engine/
 │
 ├── docs/ # Documentation files, diagrams, drafts
 └── README.md  # Main project documentation
-
+```
 ---
 
 ## Features:
