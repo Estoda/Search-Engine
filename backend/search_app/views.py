@@ -60,7 +60,7 @@ class SearchAPIView(APIView):
             pages = Page.objects.filter(id__in=page_ids).order_by('-rank')
         else:
             # No sorting or random sorting
-            pages = Page.objects.filter(id__in=page_ids)[:20]
+            pages = Page.objects.filter(id__in=page_ids)
 
         serializer = PageSerializer(pages, many=True)
         return Response(serializer.data)

@@ -248,46 +248,40 @@
     ></p>
     <div id="results"></div>
 
-    <div id="results"></div>
-
     <script>
       const form = document.getElementById("search-form");
       const resultsDiv = document.getElementById("results");
+      const resultsCount = document.getElementById("results-count");
       const sortAscButton = document.getElementById("sort-asc");
       const sortDescButton = document.getElementById("sort-desc");
       const noSortButton = document.getElementById("no-sort");
-
+    
       let sortOption = "rank_desc";
-
+    
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const query = document.getElementById("query").value;
-
-        const response = await fetch(
-          `/api/?q=${encodeURIComponent(query)}&sort=${sortOption}`
-        );
+    
+        const response = await fetch(`/api/?q=${encodeURIComponent(query)}&sort=${sortOption}`);
         const data = await response.json();
-
+    
         resultsDiv.innerHTML = "";
+        resultsCount.textContent = "";
+    
         if (data.length === 0) {
           resultsDiv.innerHTML = "<p class='no-results'>No results found.</p>";
           return;
         }
-
-        data.forEach((page) => {
-          const highlightedTitle = page.title.replace(
-            new RegExp(`(${query})`, "gi"),
-            "<mark>$1</mark>"
-          );
-
+    
+        resultsCount.textContent = `${data.length} result${data.length > 1 ? "s" : ""} found`;
+    
+        data.forEach((page, index) => {
+          const highlightedTitle = page.title.replace(new RegExp(`(${query})`, "gi"), "<mark>$1</mark>");
           const snippet = getSnippet(page.content, query);
-          const highlightedSnippet = snippet.replace(
-            new RegExp(`(${query})`, "gi"),
-            "<mark>$1</mark>"
-          );
-
+          const highlightedSnippet = snippet.replace(new RegExp(`(${query})`, "gi"), "<mark>$1</mark>");
+    
           resultsDiv.innerHTML += `
-            <div class="result">
+            <div class="result" style="animation-delay: ${index * 0.1}s">
               <a href="${page.url}" target="_blank">${highlightedTitle}</a>
               <p>Rank: ${page.rank.toFixed(2)}</p>
               <p>${highlightedSnippet}</p>
@@ -295,83 +289,33 @@
           `;
         });
       });
-
+    
       sortAscButton.addEventListener("click", () => {
         sortOption = "rank_asc";
         form.dispatchEvent(new Event("submit"));
       });
-
+    
       sortDescButton.addEventListener("click", () => {
         sortOption = "rank_desc";
         form.dispatchEvent(new Event("submit"));
       });
-
+    
       noSortButton.addEventListener("click", () => {
         sortOption = "no_sort";
         form.dispatchEvent(new Event("submit"));
       });
-
+    
       function getSnippet(text, query) {
         const lowerText = text.toLowerCase();
         const lowerQuery = query.toLowerCase();
         const index = lowerText.indexOf(lowerQuery);
-
+    
         if (index === -1) return text.slice(0, 200) + "...";
-
+    
         const start = Math.max(0, index - 50);
         const end = Math.min(text.length, index + query.length + 50);
-        return (
-          (start > 0 ? "..." : "") +
-          text.slice(start, end) +
-          (end < text.length ? "..." : "")
-        );
+        return (start > 0 ? "..." : "") + text.slice(start, end) + (end < text.length ? "..." : "");
       }
-    </script>
-    <script>
-      const resultsCount = document.getElementById("results-count");
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const query = document.getElementById("query").value;
-
-        const response = await fetch(
-          `/api/?q=${encodeURIComponent(query)}&sort=${sortOption}`
-        );
-        const data = await response.json();
-
-        resultsDiv.innerHTML = "";
-        resultsCount.textContent = "";
-
-        if (data.length === 0) {
-          resultsDiv.innerHTML = "<p class='no-results'>No results found.</p>";
-          return;
-        }
-
-        resultsCount.textContent = `${data.length} result${
-          data.length > 1 ? "s" : ""
-        } found`;
-
-        data.forEach((page, index) => {
-          const highlightedTitle = page.title.replace(
-            new RegExp(`(${query})`, "gi"),
-            "<mark>$1</mark>"
-          );
-
-          const snippet = getSnippet(page.content, query);
-          const highlightedSnippet = snippet.replace(
-            new RegExp(`(${query})`, "gi"),
-            "<mark>$1</mark>"
-          );
-
-          resultsDiv.innerHTML += `
-      <div class="result" style="animation-delay: ${index * 0.1}s">
-        <a href="${page.url}" target="_blank">${highlightedTitle}</a>
-        <p>Rank: ${page.rank.toFixed(2)}</p>
-        <p>${highlightedSnippet}</p>
-      </div>
-    `;
-        });
-      });
     </script>
   </body>
 </html>

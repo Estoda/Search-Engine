@@ -26,19 +26,31 @@ start_urls = [
     "https://english.ahram.org.eg/",
     "https://www.bbc.com/",
     "https://www.cnn.com/",
+    "https://edition.cnn.com/",
+    "https://www.nytimes.com/",
+    "https://www.aljazeera.com/",
+    "https://www.theguardian.com/international",
     "https://en.wikipedia.org/wiki/Main_Page",
     "https://www.imdb.com/",
     "https://www.britannica.com/",
-    "https://edition.cnn.com/",
-    "https://www.theguardian.com/international",
-    "https://www.nytimes.com/",
-    "https://www.aljazeera.com/",
     "https://www.nationalgeographic.com/",
     "https://www.techcrunch.com/",
+    "https://www.sciencedaily.com/",
+    "https://www.reuters.com/",
+    "https://www.wired.com/",
+    "https://www.cnet.com/",
+    "https://www.theverge.com/",
+    "https://www.healthline.com/",
+    "https://www.webmd.com/",
+    "https://www.khanacademy.org/",
+    "https://www.medium.com/",
+    "https://www.nature.com/",
+    "https://www.npr.org/",
+    "https://www.history.com/",
 ]
 
-max_urls = 400
-max_depth = 4
+max_urls = 1000
+max_depth = 2
 output_folder = "scraped_pages"
 
 ignored_extensions = [
