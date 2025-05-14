@@ -62,11 +62,11 @@ Search-Engine/
 
 ## Technologies Used:
 
-- *Backend*: Django REST Framework
-- *Database*: MySQL (via Docker)
-- *Crawler*: Python + aiohttp + BeautifulSoup + Playwright
-- *Frontend*: HTML/CSS (basic template)
-- *Deployment*: Docker, Docker Compose
+- **Backend**: Django REST Framework
+- **Database**: MySQL (via Docker)
+- **Crawler**: Python + aiohttp + BeautifulSoup + Playwright
+- **Frontend**: HTML/CSS (basic template)
+- **Deployment**: Docker, Docker Compose
 
 ---
 
