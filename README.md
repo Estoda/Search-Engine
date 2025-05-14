@@ -2,33 +2,45 @@
 
 A web-based search engine built with Django, Docker, and MySQL, supporting crawling, indexing, ranking, and highlighting.
 
+# Estoda Search Engine
+
+A web-based search engine built with Django, Docker, and MySQL, supporting crawling, indexing, ranking, user authentication, and keyword highlighting.
+
 ```text
 Search-Engine/
 │
-├── backend/ # Folder for the backend
+├── backend/                    # Django backend project
 │ ├── manage.py
-│ ├── Dockerfile
-│ ├── static/ # Static files (CSS, JS, images)
-│ ├── backend/ # Django Django project root
-│ │ ├── **init**.py
-│ │ ├── requirements.txt
+│ ├── Dockerfile                # Dockerfile for backend
+│ ├── static/                   # Static files (CSS, JS, images)
+│ ├── backend/                  # Django project root
+│ │ ├── __init__.py
 │ │ ├── settings.py
-│ │ └── urls.py
-│ └── search_app/ # Django app
+│ │ ├── urls.py
+│ │ ├── asgi.py
+│ │ └── wsgi.py
+│ └── search_app/              # Core search app
 │   ├── models.py
 │   ├── views.py
 │   ├── serializers.py
-│   └── ...
+│   ├── urls.py
+│   └── templates/
+│       ├── login.html
+│       ├── register.html
+│       └── search.html
 │
 ├── crawler/
-│ ├── crawler.py # Scrapes pages and stores data
-│ └── pagerank.py # Computes PageRank using outgoing links
+│ ├── crawler.py               # Async crawler (aiohttp + BeautifulSoup)
+│ └── pagerank.py              # PageRank algorithm
 │
-├── docker/ # Deployment and Docker configuration
-│ └── docker-compose.yml
+├── docker/
+│ └── docker-compose.yml       # Docker Compose for services
 │
-├── docs/ # Documentation files, diagrams, drafts
-└── README.md  # Main project documentation
+├── docs/                      # Diagrams, UI, ERD
+│ ├── ERD.png
+│ └── UI.png
+└── README.md                  # Project documentation
+
 ```
 ---
 

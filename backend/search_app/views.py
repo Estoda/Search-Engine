@@ -8,13 +8,26 @@ from django.db.models import Q
 from collections import defaultdict
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth.decorators import login_required
 
 def search_page(request):
     return render(request, "search_app/search.html")
 
+def register_page(request):
+    return render(request, "search_app/register.html")
+
+def login_page(request):
+    return render(request, "search_app/login.html")
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 class SearchAPIView(APIView):
     def get(self, request):
