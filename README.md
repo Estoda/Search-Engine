@@ -49,10 +49,10 @@ Search-Engine/
 * PageRank algorithm to rank results.
 * Keyword highlighting in title and content.
 * User Authentication system.
-- Registration
-- Login (with JWT access/refresh tokens)
-- Protected Search Page
-- Logout 
+    - Registration
+    - Login (with JWT access/refresh tokens)
+    - Protected Search Page
+    - Logout 
 * Dockerized backend for easy deployment.
 * REST API using Django REST Framework.
 
