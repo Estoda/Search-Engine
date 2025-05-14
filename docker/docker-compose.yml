@@ -3,14 +3,26 @@ services:
   web:
     build:
       context: ../backend
-    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ../backend:/app
       - ../crawler:/app/crawler
+      - ..backend/static:/app/static
     ports:
       - 8000:8000
     depends_on:
       - db
+    environment:
+      - DB_NAME=search_db
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_HOST=db
+      - DB_PORT=3306
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&22222222
+             
+             python manage.py runserver 0.0.0:8000"
+    restart: always # restart the container automatically if it stops
   db:
     image: mysql:8.0
     restart: always # restart the container automatically if it stops

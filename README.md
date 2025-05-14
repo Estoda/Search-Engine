@@ -97,6 +97,13 @@ python manage.py collectstatic
 
 ---
 
+## Docker Image:
+
+This project is available as a public Docker image on Docker Hub:
+[https://hub.docker.com/repository/docker/estoda/search-engine-backend/general](https://hub.docker.com/repository/docker/estoda/search-engine-backend/general)
+
+---
+
 
 ## API Documentation:
 

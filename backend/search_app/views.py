@@ -1,14 +1,20 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Page, Index
-from .serializers import PageSerializer
+from rest_framework import status, permissions, generics
+from .models import Page, Index, User
+from .serializers import PageSerializer, UserSerializer
 from django.db.models import Q
 from collections import defaultdict
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.hashers import check_password
 
 def search_page(request):
     return render(request, "search_app/search.html")
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 class SearchAPIView(APIView):
     def get(self, request):

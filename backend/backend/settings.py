@@ -43,6 +43,12 @@ INSTALLED_APPS = [
     'drf_yasg'
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -77,15 +83,28 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# if local
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'search_db',
+#         'USER': 'root',
+#         'PASSWORD': 'root',
+#         # 'HOST': 'localhost', 
+#         'HOST': 'db', # if using docker
+#         'PORT': '3306',                                                                     
+#     }
+# }
+
+# if docker
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'search_db',
-        'USER': 'root',
-        'PASSWORD': 'root',
-        # 'HOST': 'localhost', # if local
-        'HOST': 'db', # if using docker
-        'PORT': '3306',                                                                     
+        'NAME': os.environ.get('DB_NAME', 'search_db'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
+        'HOST': os.environ.get('DB_HOST', 'db'),  # Docker service name
+        'PORT': os.environ.get('DB_PORT', '3306'),  # Default MySQL port
     }
 }
 
@@ -108,6 +127,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'search_app.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

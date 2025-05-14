@@ -1,4 +1,11 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator, EmailValidator
+
+
+class User(AbstractUser):
+    email = models.EmailField(unique=True)
+
 
 class Page(models.Model):
     url = models.URLField(unique=True)

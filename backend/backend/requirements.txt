@@ -5,6 +5,7 @@ pymysql
 cryptography==44.0.0
 drf-yasg
 django-cors-headers
+djangorestframework-simplejwt
 mysqlclient
 aiohttp
 beautifulsoup4
