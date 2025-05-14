@@ -44,17 +44,17 @@ Search-Engine/
 ---
 
 ## Features:
-- Async web crawler with `aiohttp` and `playwright` fallback.
-- Inverted index for full-text search.
-- PageRank algorithm to rank results.
-- Keyword highlighting in title and content.
-- User Authentication system.
-+ Registration
-+ Login (with JWT access/refresh tokens)
-+ Protected Search Page
-+ Logout button
-- Dockerized backend for easy deployment.
-- REST API using Django REST Framework.
+* Async web crawler with `aiohttp` and `playwright` fallback.
+* Inverted index for full-text search.
+* PageRank algorithm to rank results.
+* Keyword highlighting in title and content.
+* User Authentication system.
+- Registration
+- Login (with JWT access/refresh tokens)
+- Protected Search Page
+- Logout 
+* Dockerized backend for easy deployment.
+* REST API using Django REST Framework.
 
 ---
 
