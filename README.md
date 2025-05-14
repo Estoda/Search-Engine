@@ -149,4 +149,6 @@ The schema is generated using `drf-yasg`, and documents all available search end
 - **Purpose**:  A simple search engine platform with user login, crawling, indexing, and search capabilities.
 - **Stack**: Django + DRF + MySQL + Docker + JS
 
+===
+
 ### ✨ Developed as part of the Advanced Operating Systems & Big Data combined project — with real-world Docker-based deployment in mind.
