@@ -53,18 +53,20 @@ Search-Engine/
     - Login (with JWT access/refresh tokens)
     - Protected Search Page
     - Logout 
-* Dockerized backend for easy deployment.
-* REST API using Django REST Framework.
+* RESTful Search API (protected).
+* Swagger & ReDoc API docs.
+* Dockerized backend (Django + MySQL).
+* Orchestrated with Docker Compose.
 
 ---
 
 ## Technologies Used:
 
-- Backend: Django REST Framework
-- Database: MySQL (via Docker)
-- Crawler: Python + aiohttp + BeautifulSoup + Playwright
-- Frontend: HTML/CSS (basic template)
-- Deployment: Docker, Docker Compose
+- *Backend*: Django REST Framework
+- *Database*: MySQL (via Docker)
+- *Crawler*: Python + aiohttp + BeautifulSoup + Playwright
+- *Frontend*: HTML/CSS (basic template)
+- *Deployment*: Docker, Docker Compose
 
 ---
 
