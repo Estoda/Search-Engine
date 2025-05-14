@@ -62,11 +62,22 @@ Search-Engine/
 
 ## Technologies Used:
 
-- **Backend**: Django REST Framework
+- **Backend**: Django, Django REST Framework
 - **Database**: MySQL (via Docker)
 - **Crawler**: Python + aiohttp + BeautifulSoup + Playwright
-- **Frontend**: HTML/CSS (basic template)
+- **Frontend**: HTML/CSS (basic template) + Vanilla JS (token handling, fetch API)
+- **Auth**: JWT (access + refresh tokens) with auto-expiry handling
 - **Deployment**: Docker, Docker Compose
+
+---
+
+## Authentication Flow:
+
+- Users must register and login in to access the search.
+- JWT tokens stored in `localStorage`.
+- Access token attached as `Authorization: Bearer <token> on search request.
+- If token expire -> message shows -> redirected to login page.
+- Logout button clears local storage and redirects to login page.
 
 ---
 
