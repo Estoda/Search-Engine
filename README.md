@@ -75,7 +75,7 @@ Search-Engine/
 
 - Users must register and login in to access the search.
 - JWT tokens stored in `localStorage`.
-- Access token attached as `Authorization: Bearer `<token>` on search request.
+- Access token attached as `Authorization: Bearer \<token>\ on search request.
 - If token expire -> message shows -> redirected to login page.
 - Logout button clears local storage and redirects to login page.
 
