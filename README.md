@@ -135,9 +135,18 @@ This project is available as a public Docker image on Docker Hub:
 
 ## API Documentation:
 
-This project includes auto-generated API documentation using:
+Accessible locally after running the server:
 
 - **Swagger UI**: [http://localhost:8000/swagger/](http://localhost:8000/swagger/)
 - **ReDoc** [http://localhost:8000/redoc/](http://localhost:8000/redoc/)
 
 The schema is generated using `drf-yasg`, and documents all available search endpoints and query parameters.
+
+---
+
+## Project Summary:
+
+- **Purpose**:  A simple search engine platform with user login, crawling, indexing, and search capabilities.
+- **Stack**: Django + DRF + MySQL + Docker + JS
+
+# ✨ Developed as part of the Advanced Operating Systems & Big Data combined project — with real-world Docker-based deployment in mind.
