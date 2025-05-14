@@ -151,4 +151,4 @@ The schema is generated using `drf-yasg`, and documents all available search end
 
 ---
 
-#### ✨ Developed as part of the Advanced Operating Systems & Big Data combined project — with real-world Docker-based deployment in mind.
+#### ✨ Developed as part of the **`Advanced Operating Systems`** & **`Big Data`** combined project — with real-world Docker-based deployment in mind.
